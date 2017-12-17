@@ -6,6 +6,7 @@
     - Avec méthode de l'élastique
 
 */
+:- use_module(library(statistics)).
 /* On considère un graphe complet */
 
 dist(a,b, 4).
