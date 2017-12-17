@@ -54,9 +54,9 @@ read_tsp_file(NomF) :-
 
 /* Fonction distance */
 
-distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sin(Y1)*sin(Y2)+cos(Y1)*cos(Y2)*cos(Z1-Z2), M2 is acos(M), D=[X1,X2,M2].
+distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is acos(sin(Y1)*sin(Y2)+cos(Y1)*cos(Y2)*cos(Z1-Z2)), D=[X1,X2,M].
 
-matrice(M,C,F):- ville(X,Y,Z), ville(X2,Y2,Z2), not(X=X2), verifier([X,X2],C), Cnew=[[X,X2]|C], distance(ville(X,Y,Z),ville(X2,Y2,Z2),D), Mnew=[D|M], matrice(Mnew,Cnew,F),!.
+matrice(M,C,F):- ville(X,Y,Z), ville(X2,Y2,Z2), not(X=X2), verifier([X,X2],C), Cnew=[[X,X2],[X2,X]|C], distance(ville(X,Y,Z),ville(X2,Y2,Z2),D), D=[S1,S2,Dist], Mnew=[D,[S2,S1,Dist]|M], matrice(Mnew,Cnew,F),!.
 matrice(M,_,F):- F = M.
 
 /* ****************** Méthode Gloutonne *********************** */
