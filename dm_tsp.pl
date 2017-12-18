@@ -18,7 +18,7 @@ dist(a,c,3).
 dist(c,b,9).
 
 
-/* ***************** Production de la matrice à partir des données ******************* 
+/* ***************** Production de la matrice à partir des données *******************
 Lecture du fichier
 lecture des villes dans un fichier tsplib
 */
@@ -34,7 +34,7 @@ read_villes(Str) :-
     assertz(FV), /* on stocke toutes les coordonnées des villes dans un prédicat dynamique ville(V,XV,YV */
     read_villes(Str)).
 
-/* read_info_villes(+Str) ou Str est un Stream 
+/* read_info_villes(+Str) ou Str est un Stream
    Lecture du fichier .tsplib
 */
 
@@ -45,8 +45,8 @@ read_info_villes(Str) :-
         read_villes(Str);
         read_info_villes(Str)).
 
-/* read_tsp_file(+NomFichier) avec NomFichier : chaine de caractères 
-   Appel read_tsp_file('dji38.tsp') 
+/* read_tsp_file(+NomFichier) avec NomFichier : chaine de caractères
+   Appel read_tsp_file('dji38.tsp')
 */
 
 read_tsp_file(NomF) :-
@@ -61,7 +61,7 @@ distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is acos(sin(Y1)*sin(Y2)+cos(Y1
 matrice(M,C,F):- ville(X,Y,Z), ville(X2,Y2,Z2), not(X=X2), verifier([X,X2],C), Cnew=[[X,X2],[X2,X]|C], distance(ville(X,Y,Z),ville(X2,Y2,Z2),D), D=[S1,S2,Dist], Mnew=[D,[S2,S1,Dist]|M], matrice(Mnew,Cnew,F),!.
 matrice(M,_,F):- F = M.
 
-/* ****************** Méthode Gloutonne *********************** 
+/* ****************** Méthode Gloutonne ***********************
 
    Code test :
   glouton(a,[[a,b,4], [c,a,3], [b,c,9], [b,a,4], [a,c,3], [c,b,9]],[],0).
@@ -72,6 +72,7 @@ min([[A,F]|Q],E,N):- min(Q,A,F,E,N).
 min([[T,F]|Q],M,_,E,N):- T<M, min(Q,T,F,E,N),!.
 min([[T,_]|Q],M,O,E,N):- T>=M, min(Q,M,O,E,N),!.
 min([],M,O,M,O).
+
 
 verifier(Tbis,C) :- not(member(Tbis,C)).
 
@@ -93,7 +94,7 @@ distmin(a,[[M,_,D]],[C], E):- not(M=a), distmin(a,[],[D|C],E).
 
 distmin(_,[],S,E,N,_):- min(S,E,N).
 
-/* ****************** Algo A* *********************** 
+/* ****************** Algo A* ***********************
 
 	Fonction heuristique 1 : 2-opt :
 	On part d'une solution réalisable (facile à trouver car graphe complet), et on effectue des flips successifs afin d'approcher la solution optimale
@@ -101,13 +102,15 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 	Soit v un sommet donné et t un autre sommet
 	On note s(v) le sommet suivant le sommet v dans notre solution courante.
 	si (v, s(v)) est supérieur au cout de (s(v), s(p)) le flip considéré est dit prometteur. On ne considère que les flips prometteurs dans un premier temps
-	
+
 	Généralisation à l'algo de Lin-Kernighan (k-opt) possible
 
-	Fonction heuristique 2 : ? :
-	
-	
-	permutation et enlever 
+	Fonction heuristique 2 : Arbre couvrant de poids minimal :
+  On commence par générer un arbre couvrant de poids minimal via l'algorithme de krushkal
+
+
+
+	permutation et enlever
 */
 enlever( X, [X|Q], Q).
 enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
