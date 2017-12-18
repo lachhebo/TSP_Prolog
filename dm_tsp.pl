@@ -150,53 +150,54 @@ init_sol_realisable(Ville_depart, [Ville_depart | Z], Acc) :- init_sol_realisabl
 
 /* Après avoir obtenu une solution réalisable, on cherche une permutation qui diminuera le cout du voyage (2-opt) */
 
-heuristique_1(Res_Final, Cout_final, Acc1, _, _, _) :- Verif_acc1 is Acc1 + 1,
-	not(ville(Verif_acc1, _, _)),
+heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
+	not(ville(Verif_acc1, _, _)), Cpt >= 2,
 	write("\nResultat : "), write(Res_Final), write(" \nCout :"), write(Cout_final), !.
+	
+heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
+	not(ville(Verif_acc1, _, _)), Cpt < 2, NewCpt is Cpt + 1, heuristique_1(Res_Final, Cout_final, 1, 2, Res_Final, Cout_final, NewCpt), !.
 
 /* Lorsqu'on a considéré tous les flips pour le sommet Acc1, on passe au suivant */
 
-heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
+heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt) :-
 	not(ville(Acc2, _, _)), NewAcc1 is Acc1 + 1,
-	heuristique_1(CH, X, NewAcc1, 1, Res, Cout_actuel), !.
+	heuristique_1(CH, X, NewAcc1, 1, Res, Cout_actuel, Cpt), !.
 
 /* Cas où on considère un chemin absurde (de la ville A à la ville A) */
 
-heuristique_1(CH, X, Acc1, Acc1, Res, Cout_actuel) :- NewAcc is Acc1 + 1, heuristique_1(CH, X, Acc1, NewAcc, Res, Cout_actuel), !.
+heuristique_1(CH, X, Acc1, Acc1, Res, Cout_actuel, Cpt) :- NewAcc is Acc1 + 1, heuristique_1(CH, X, Acc1, NewAcc, Res, Cout_actuel, Cpt), !.
 
 /* Si le flip a amélioré notre solution, on le conserve */
 
-heuristique_1(CH, X, Acc1, Acc2, _, _) :- 
-	Follower_1 is Acc1 + 1, ville(Follower_1, _, _), 
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost =< X, NewAcc2 is Acc2 + 1, 
-	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost), !.
-	
-/* Si le flip n'a pas amélioré notre solution, on l'ignore */
-
-heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :- 
-	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost > X, NewAcc2 is Acc2 + 1, 
-	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel), !.
-	
-/* Appel de l'heuristique 1 */
-
-heuristique_1(CH, X, Acc1, Acc2, _, _) :-
+heuristique_1(CH, X, Acc1, Acc2, _, _, Cpt) :- 
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
 	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost =< X, NewAcc2 is Acc2 + 1,
-	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost), !.
-
+	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost, Cpt), !.
+	
 /* Si le flip n'a pas amélioré notre solution, on l'ignore */
 
-heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
+heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt) :- 
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost > X, NewAcc2 is Acc2 + 1,
-	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel), !.
+	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost > X, NewAcc2 is Acc2 + 1, 
+	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt), !.
+	
 
 /* Appel de l'heuristique 1
 
 	Ville_depart : numéro de la ville de départ
 	CH : Liste représentant le trajet du voyageur
 	X : Cout du chemin
+	random_permutation permet de mélanger notre solution réalisable. celà rend l'heuristique moins sensible aux minimas locaux. 
+	Cependant la solution sera a chaque fois différente
+	
+	Problème des 38 villes de djiboutis (Cout optimal : 6656).
+	Meilleur résultat obtenu (environ 30 essais, on part de la ville 1) :
+	
+	?- a_etoile_1(1).
+
+	Resultat : [27,31,36,34,33,38,37,35,32,30,26,25,23,20,22,24,28,19,18,11,12,9,8,13,15,17,16,7,6,3,5,4,2,1,10,14,21,29]
+	Cout :7032.226891035899
+	true.
 */
 
-a_etoile_1(Ville_depart) :- init_sol_realisable(Ville_depart, CH, 1), calcul_cout_total(CH, X), heuristique_1(CH, X, Ville_depart, 2, CH, X), !.
+a_etoile_1(Ville_depart) :- init_sol_realisable(Ville_depart, CH, 1), random_permutation(CH, CHbis), calcul_cout_total(CHbis, X), heuristique_1(CHbis, X, Ville_depart, 2, CHbis, X, 0), !.
