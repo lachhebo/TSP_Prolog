@@ -5,6 +5,11 @@
     - Avec méthodes gloutonnes
     - Avec méthode de l'élastique
 
+
+    ?- time(glouton(1)).
+    [11,12,27,31,17,19,18,16,36,9,5,8,3,7,34,33,6,28,13,15,24,4,22,38,37,20,25,23,26,2,35,30,32,14,10,29,21,1] cout total =2154317.7644572295
+    % 1,418,805 inferences, 0.131 CPU in 0.131 seconds (100% CPU, 10795811 Lips)
+
 */
 :- use_module(library(statistics)).
 /* On considère un graphe complet */
@@ -54,10 +59,8 @@ read_tsp_file(NomF) :-
 
 /* Fonction distance */
 
-distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is acos(sin(Y1)*sin(Y2)+cos(Y1)*cos(Y2)*cos(Z1-Z2)), D=[X1,X2,M].
-
-matrice(M,C,F):- ville(X,Y,Z), ville(X2,Y2,Z2), not(X=X2), verifier([X,X2],C), Cnew=[[X,X2],[X2,X]|C], distance(ville(X,Y,Z),ville(X2,Y2,Z2),D), D=[S1,S2,Dist], Mnew=[D,[S2,S1,Dist]|M], matrice(Mnew,Cnew,F),!.
-matrice(M,_,F):- F = M.
+matrice(M,C,V1,V2,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X),(X>=V1), not(member([X,X2],C)), !, D is sqrt((Z^2 - Y^2) + (Z2^2-Y2^2)), matrice([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
+matrice2(M,_,_,_,F):- F=M.
 
 /* ****************** Méthode Gloutonne *********************** */
 
@@ -75,7 +78,7 @@ verifier(Tbis,C) :- not(member(Tbis,C)).
 
 /* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
 
-glouton(D):- matrice([],[],F), glouton(D,F,[],0).
+glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
 glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
 
 /*Lorsque on a fini de parcourir le graphe */
