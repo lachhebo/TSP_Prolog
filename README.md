@@ -2,7 +2,7 @@
 Implémentation d'heuristique de résolution du TSP avec Prolog
 
 
-Comme on peut le voir, c'est surtout la construction de la matrice qui a une complexité absolument monstrueuse, pour construire la matrice associé à 38 noeuds dans notre graphe,il a fallu 41.177 secondes et 41.307 secondes pour obtenir le résultat du glouton et construire la matrice. On peut donc déduire qu'indépendamment de la construction de la matrice, il a falu 0.130 secondes à l'algorithme glouton pour obtenir une solution. Reste à juger de la qualité de l'heuristique gloutonne, d'abord par rapport à une relaxation du problème et ensuite par rapport à l'algorithme a_star. 
+Comme on peut le voir, c'est surtout la construction de la matrice qui a une complexité absolument monstrueuse, pour construire la matrice associé à 38 noeuds dans notre graphe,il a fallu 41.177 secondes et 41.307 secondes pour obtenir le résultat du glouton et construire la matrice. On peut donc déduire qu'indépendamment de la construction de la matrice, il a falu 0.130 secondes à l'algorithme glouton pour obtenir une solution. Reste à juger de la qualité de l'heuristique gloutonne, d'abord par rapport à une relaxation du problème et ensuite par rapport à l'algorithme a_star.
 
 
 ?- time(glouton(1)).
