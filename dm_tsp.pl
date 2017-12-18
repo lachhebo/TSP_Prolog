@@ -121,6 +121,8 @@ enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
 permutation([],[]):- !.
 permutation( L, [X|Q1]) :- enlever( X, L, Q), permutation( Q, Q1).
 
+distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is acos(sin(Y1)*sin(Y2)+cos(Y1)*cos(Y2)*cos(Z1-Z2)), D=[X1,X2,M].
+
 /* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
 
 permute(_,_,[], []).
@@ -177,10 +179,6 @@ heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
 	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel), !.
 	
 /* Appel de l'heuristique 1
-
-ville(Acc1, Coor_1_acc1, Coor_2_acc1), ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), ville(Acc2, Coor_1_acc2, Coor_2_acc2), ville(Follower_2, Coor_1_follower_2, Coor_2_follower_2),
-	distance(ville(Acc1, Coor_1_acc1, Coor_2_acc1), ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), Dist_1), distance(ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), ville(Follower_2, Coor_1_follower_2, Coor_2_follower_2), Dist_2), .
-
 
 	Ville_depart : numéro de la ville de départ
 	CH : Liste représentant le trajet du voyageur
