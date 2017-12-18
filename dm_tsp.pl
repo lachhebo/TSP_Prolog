@@ -5,10 +5,10 @@
     - Avec méthodes gloutonnes
     - Avec méthode de l'élastique
 
-
     ?- time(glouton(1)).
     [11,12,27,31,17,19,18,16,36,9,5,8,3,7,34,33,6,28,13,15,24,4,22,38,37,20,25,23,26,2,35,30,32,14,10,29,21,1] cout total =2154317.7644572295
-    % 1,418,805 inferences, 0.131 CPU in 0.131 seconds (100% CPU, 10795811 Lips)
+    % 1,418,805 inferences, 0.135 CPU in 0.135 seconds (100% CPU, 10483736 Lips)
+    true.
 
 */
 :- use_module(library(statistics)).
@@ -61,7 +61,7 @@ read_tsp_file(NomF) :-
 
 /* Fonction distance */
 
-matrice(M,C,V1,V2,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X),(X>=V1), not(member([X,X2],C)), !, D is sqrt((Z^2 - Y^2) + (Z2^2-Y2^2)), matrice([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
+matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is sqrt((Z^2 - Y^2) + (Z2^2-Y2^2)), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
 matrice2(M,_,_,_,F):- F=M.
 
 /* ****************** Méthode Gloutonne ***********************
@@ -81,7 +81,7 @@ verifier(Tbis,C) :- not(member(Tbis,C)).
 
 /* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
 
-glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
+glouton(D):- matrice2([],[],1,2,F), glouton(D,F,[],0).
 glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
 
 /*Lorsque on a fini de parcourir le graphe */
@@ -98,13 +98,17 @@ distmin(a,[[M,_,D]],[C], E):- not(M=a), distmin(a,[],[D|C],E).
 distmin(_,[],S,E,N,_):- min(S,E,N).
 
 /* ****************** Algo A* ***********************
+<<<<<<< HEAD
 
+=======
+>>>>>>> d28e18513249007dea3afd542223a2f0e3393a65
 	Fonction heuristique 1 : 2-opt :
 	On part d'une solution réalisable (facile à trouver car graphe complet), et on effectue des flips successifs afin d'approcher la solution optimale
 	Un flip consiste à considérer deux arêtes (A, B) et (C, D). Si le remplacement de ses arêtes par les arêtes (A, C), (B, D) diminue le cout total, on effectue le remplacement ou flip.
 	Soit v un sommet donné et t un autre sommet
 	On note s(v) le sommet suivant le sommet v dans notre solution courante.
 	si (v, s(v)) est supérieur au cout de (s(v), s(t)) le flip considéré est dit prometteur. On ne considère que les flips prometteurs dans un premier temps
+<<<<<<< HEAD
 
 	Généralisation à l'algo de Lin-Kernighan (k-opt) possible, mais compliqué. On ne considère plus deux arêtes mais deux chemins
 
@@ -113,6 +117,11 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 
 
 
+=======
+	Généralisation à l'algo de Lin-Kernighan (k-opt) possible, mais compliqué. On ne considère plus deux arêtes mais deux chemins
+	Fonction heuristique 2 : Arbre couvrant de poids minimal :
+	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
+>>>>>>> d28e18513249007dea3afd542223a2f0e3393a65
 	permutation, permute et enlever
 */
 enlever( X, [X|Q], Q).
@@ -121,7 +130,6 @@ enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
 permutation([],[]):- !.
 permutation( L, [X|Q1]) :- enlever( X, L, Q), permutation( Q, Q1).
 
-distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is acos(sin(Y1)*sin(Y2)+cos(Y1)*cos(Y2)*cos(Z1-Z2)), D=[X1,X2,M].
 
 /* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
 
@@ -156,7 +164,11 @@ heuristique_1(Res_Final, Cout_final, Acc1, _, _, _) :- Verif_acc1 is Acc1 + 1,
 
 /* Lorsqu'on a considéré tous les flips pour le sommet Acc1, on passe au suivant */
 
+<<<<<<< HEAD
 heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :- 
+=======
+heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
+>>>>>>> d28e18513249007dea3afd542223a2f0e3393a65
 	not(ville(Acc2, _, _)), NewAcc1 is Acc1 + 1,
 	heuristique_1(CH, X, NewAcc1, 1, Res, Cout_actuel), !.
 
@@ -166,6 +178,7 @@ heuristique_1(CH, X, Acc1, Acc1, Res, Cout_actuel) :- NewAcc is Acc1 + 1, heuris
 
 /* Si le flip a amélioré notre solution, on le conserve */
 
+<<<<<<< HEAD
 heuristique_1(CH, X, Acc1, Acc2, _, _) :- 
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _), 
 	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost =< X, NewAcc2 is Acc2 + 1, 
@@ -180,6 +193,23 @@ heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
 	
 /* Appel de l'heuristique 1
 
+=======
+heuristique_1(CH, X, Acc1, Acc2, _, _) :-
+	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
+	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost =< X, NewAcc2 is Acc2 + 1,
+	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost), !.
+
+/* Si le flip n'a pas amélioré notre solution, on l'ignore */
+
+heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel) :-
+	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
+	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost > X, NewAcc2 is Acc2 + 1,
+	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel), !.
+
+/* Appel de l'heuristique 1
+ville(Acc1, Coor_1_acc1, Coor_2_acc1), ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), ville(Acc2, Coor_1_acc2, Coor_2_acc2), ville(Follower_2, Coor_1_follower_2, Coor_2_follower_2),
+	distance(ville(Acc1, Coor_1_acc1, Coor_2_acc1), ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), Dist_1), distance(ville(Follower_1, Coor_1_follower_1, Coor_2_follower_1), ville(Follower_2, Coor_1_follower_2, Coor_2_follower_2), Dist_2), .
+>>>>>>> d28e18513249007dea3afd542223a2f0e3393a65
 	Ville_depart : numéro de la ville de départ
 	CH : Liste représentant le trajet du voyageur
 	X : Cout du chemin
