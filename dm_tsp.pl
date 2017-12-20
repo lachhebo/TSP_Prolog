@@ -127,7 +127,7 @@ permutation( L, [X|Q1]) :- enlever( X, L, Q), permutation( Q, Q1).
 
 /* ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), D is sqrt(((Z-Y)^2) + ((Z2-Y2)^2)),  */
 
-distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt(((Y1-Y2)^2) + ((Z1 - Z2)^2)), D = [X1, X2, M].
+distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
 
 /* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
 
@@ -135,6 +135,19 @@ permute(_,_,[], []).
 permute(Sommet1, Sommet2, [Sommet2 | CH], [Sommet1 | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath), !.
 permute(Sommet1, Sommet2, [Sommet1 | CH], [Sommet2 | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath), !.
 permute(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath).
+
+
+permute_2opt_reverse(Sommet, [Sommet | CH], CH) :- !.
+permute_2opt_reverse(Sommet, [_ | CH], NewPath) :- permute_2opt_reverse(Sommet, CH, NewPath).
+
+cut_list(_, [], []).
+cut_list(Sommet, [Sommet | CH], CH) :- !.
+cut_list(Sommet, [_ | CH], X) :- cut_list(Sommet, CH, X).
+
+permute_2opt(_,_,[],[]).
+permute_2opt(Sommet1, Sommet2, [Sommet2 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet1, NewCH, ReversedList), cut_list(Sommet1, CH, New), permute_2opt(Sommet1, Sommet2, New, NewPath), append(ReversedList, NewPath, NewPath), !.
+permute_2opt(Sommet1, Sommet2, [Sommet1 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet2, NewCH, ReversedList), cut_list(Sommet2, CH, New), permute_2opt(Sommet1, Sommet2, New, NewPath), append(ReversedList, NewPath, NewPath), !.
+permute_2opt(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute_2opt(Sommet1, Sommet2, CH, NewPath).
 
 /* Code pour fermer une liste. Apres l'initialisation de la solution réalisable, une variable non déclarée traine a la fin*/
 
@@ -157,11 +170,11 @@ init_sol_realisable(Ville_depart, [Ville_depart | Z], Acc) :- init_sol_realisabl
 /* Après avoir obtenu une solution réalisable, on cherche une permutation qui diminuera le cout du voyage (2-opt) */
 
 heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
-	not(ville(Verif_acc1, _, _)), Cpt >= 2,
+	not(ville(Verif_acc1, _, _)), Cpt >= 10,
 	write("\nResultat : "), write(Res_Final), write(" \nCout :"), write(Cout_final), !.
 	
 heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
-	not(ville(Verif_acc1, _, _)), Cpt < 2, NewCpt is Cpt + 1, heuristique_1(Res_Final, Cout_final, 1, 2, Res_Final, Cout_final, NewCpt), !.
+	not(ville(Verif_acc1, _, _)), Cpt < 10, NewCpt is Cpt + 1, heuristique_1(Res_Final, Cout_final, 1, 2, Res_Final, Cout_final, NewCpt), !.
 
 /* Lorsqu'on a considéré tous les flips pour le sommet Acc1, on passe au suivant */
 
@@ -175,16 +188,16 @@ heuristique_1(CH, X, Acc1, Acc1, Res, Cout_actuel, Cpt) :- NewAcc is Acc1 + 1, h
 
 /* Si le flip a amélioré notre solution, on le conserve */
 
-heuristique_1(CH, X, Acc1, Acc2, _, _, Cpt) :- 
+heuristique_1(CH, X, Acc1, Acc2, _, _, _) :- 
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost =< X, NewAcc2 is Acc2 + 1,
-	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost, Cpt), !.
+	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost < X, NewAcc2 is Acc2 + 1, 
+	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost, 0), !.
 	
 /* Si le flip n'a pas amélioré notre solution, on l'ignore */
 
 heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt) :- 
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost > X, NewAcc2 is Acc2 + 1, 
+	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost >= X, NewAcc2 is Acc2 + 1, 
 	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt), !.
 	
 
