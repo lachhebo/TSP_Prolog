@@ -9,9 +9,9 @@
     [11,12,27,31,17,19,18,16,36,9,5,8,3,7,34,33,6,28,13,15,24,4,22,38,37,20,25,23,26,2,35,30,32,14,10,29,21,1] cout total =2154317.7644572295
     % 1,418,805 inferences, 0.135 CPU in 0.135 seconds (100% CPU, 10483736 Lips)
     true.
-	
+
 	Test de l'algo glouton sur qa194 (Cout optimal : 9352) :
-	
+
 	?- time(glouton(1)).
 	[84,100,119,122,118,160,194,176,182,183,186,187,190,192,189,191,188,193,185,171,166,162,158,159,165,168,167,170,180,178,177,181,184,175,173,174,179,172,169,164,163,161,156,130,20,89,111,104,101,99,94,90,98,86,85,65,63,36,59,62,82,87,80,76,71,23,25,7,4,2,3,5,9,10,12,15,19,50,45,57,60,69,74,72,75,78,91,103,102,109,113,114,126,125,127,132,134,137,140,145,149,146,142,138,139,141,157,154,144,150,153,152,147,151,155,143,148,136,131,129,135,133,124,123,128,120,121,117,116,115,112,110,108,107,106,105,97,93,96,95,92,88,83,81,79,77,70,64,68,73,66,67,61,34,31,30,32,35,44,42,49,55,54,43,40,38,41,46,48,52,53,56,58,51,47,39,37,27,22,29,28,33,18,21,24,26,17,11,14,13,16,8,6,1] cout total =10982.563823401693
 	% 892,297,654 inferences, 83.734 CPU in 84.760 seconds (99% CPU, 10656288 Lips)
@@ -26,7 +26,7 @@
 
 */
 :- use_module(library(statistics)).
-/* On considère un graphe complet 
+/* On considère un graphe complet
 
 
  ***************** Production de la matrice à partir des données *******************
@@ -103,7 +103,7 @@ distmin(a,[[M,_,D]],[C], E):- not(M=a), distmin(a,[],[D|C],E).
 
 distmin(_,[],S,E,N,_):- min(S,E,N).
 
-/* ****************** Algo A* ***********************
+/* ****************** Heuristiques ***********************
 
 	Fonction heuristique 1 : 2-opt :
 	On part d'une solution réalisable (facile à trouver car graphe complet), et on effectue des flips successifs afin d'approcher la solution optimale
@@ -117,37 +117,23 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 	Fonction heuristique 2 : Arbre couvrant de poids minimal :
 	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
 
-	permutation, permute et enlever
 */
-enlever( X, [X|Q], Q).
-enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
-
-permutation([],[]):- !.
-permutation( L, [X|Q1]) :- enlever( X, L, Q), permutation( Q, Q1).
-
-/* ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), D is sqrt(((Z-Y)^2) + ((Z2-Y2)^2)),  */
 
 distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
 
 /* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
 
-permute(_,_,[], []).
-permute(Sommet1, Sommet2, [Sommet2 | CH], [Sommet1 | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath), !.
-permute(Sommet1, Sommet2, [Sommet1 | CH], [Sommet2 | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath), !.
-permute(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute(Sommet1, Sommet2, CH, NewPath).
-
-
 permute_2opt_reverse(Sommet, [Sommet | CH], CH) :- !.
-permute_2opt_reverse(Sommet, [_ | CH], NewPath) :- permute_2opt_reverse(Sommet, CH, NewPath).
+permute_2opt_reverse(Sommet, [_ | CH], NewPath) :- permute_2opt_reverse(Sommet, CH, NewPath), !.
 
 cut_list(_, [], []).
 cut_list(Sommet, [Sommet | CH], CH) :- !.
-cut_list(Sommet, [_ | CH], X) :- cut_list(Sommet, CH, X).
+cut_list(Sommet, [_ | CH], X) :- cut_list(Sommet, CH, X), !.
 
-permute_2opt(_,_,[],[]).
-permute_2opt(Sommet1, Sommet2, [Sommet2 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet1, NewCH, ReversedList), cut_list(Sommet1, CH, New), permute_2opt(Sommet1, Sommet2, New, NewPath), append(ReversedList, NewPath, NewPath), !.
-permute_2opt(Sommet1, Sommet2, [Sommet1 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet2, NewCH, ReversedList), cut_list(Sommet2, CH, New), permute_2opt(Sommet1, Sommet2, New, NewPath), append(ReversedList, NewPath, NewPath), !.
-permute_2opt(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute_2opt(Sommet1, Sommet2, CH, NewPath).
+permute_2opt(_,_,[],[]) :-!.
+permute_2opt(Sommet1, Sommet2, [Sommet2 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet1, NewCH, ReversedList), cut_list(Sommet1, CH, New), append([[Sommet1], ReversedList, [Sommet2], New], NewPath), !.
+permute_2opt(Sommet1, Sommet2, [Sommet1 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet2, NewCH, ReversedList), cut_list(Sommet2, CH, New), append([[Sommet2], ReversedList, [Sommet1], New], NewPath), !.
+permute_2opt(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute_2opt(Sommet1, Sommet2, CH, NewPath), !.
 
 /* Code pour fermer une liste. Apres l'initialisation de la solution réalisable, une variable non déclarée traine a la fin*/
 
@@ -165,58 +151,88 @@ init_sol_realisable(_, Acc) :- not(ville(Acc,_,_)).
 init_sol_realisable(CH, Acc) :- ville(Acc, _, _), not(member(Acc, CH)), NewAcc is Acc + 1, init_sol_realisable([Acc | CH], NewAcc).
 init_sol_realisable(CH, Acc) :- ville(Acc, _, _), member(Acc, CH), NewAcc is Acc + 1, init_sol_realisable(CH, NewAcc), !.
 
-init_sol_realisable(Ville_depart, [Ville_depart | Z], Acc) :- init_sol_realisable([Ville_depart | Z], Acc), fermer_liste(Z).
+init_sol_realisable(Ville_depart, [Ville_depart | Z], Acc) :- init_sol_realisable([Ville_depart | Y], Acc), fermer_liste(Z), random_permutation(Y, Z).
 
 /* Après avoir obtenu une solution réalisable, on cherche une permutation qui diminuera le cout du voyage (2-opt) */
 
-heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
-	not(ville(Verif_acc1, _, _)), Cpt >= 10,
-	write("\nResultat : "), write(Res_Final), write(" \nCout :"), write(Cout_final), !.
-	
-heuristique_1(Res_Final, Cout_final, Acc1, _, _, _, Cpt) :- Verif_acc1 is Acc1 + 1,
-	not(ville(Verif_acc1, _, _)), Cpt < 10, NewCpt is Cpt + 1, heuristique_1(Res_Final, Cout_final, 1, 2, Res_Final, Cout_final, NewCpt), !.
+/* On ne considère pas de flip si on est sur la ville de départ */
+
+heuristique_1(Ville_depart, CH, X, Ville_depart, Acc2, Res, Cout_actuel, Cpt, Path, Cost) :-
+	NewAcc1 is Ville_depart + 1,
+	heuristique_1(Ville_depart, CH, X, NewAcc1, Acc2, Res, Cout_actuel, Cpt, Path, Cost), !.
+
+heuristique_1(Ville_depart, CH, X, Acc1, Ville_depart, Res, Cout_actuel, Cpt, Path, Cost) :-
+  	NewAcc2 is Ville_depart + 1,
+  	heuristique_1(Ville_depart, CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt, Path, Cost), !.
+
+/* Conditions de fin */
+
+heuristique_1(Ville_depart, Res_Final, _, Acc1, _, _, _, Cpt, Path, Cost) :- Verif_acc1 is Acc1 + 1,
+	not(ville(Verif_acc1, _, _)), Cpt >= 2,
+  append(Res_Final, [Ville_depart], NewRes), calcul_cout_total(NewRes, NewCost),
+	Path = NewRes, Cost = NewCost, !.
+
+heuristique_1(Ville_depart, Res_Final, Cout_final, Acc1, _, _, _, Cpt, Path, Cost) :- Verif_acc1 is Acc1 + 1,
+	not(ville(Verif_acc1, _, _)), Cpt < 2, NewCpt is Cpt + 1, heuristique_1(Ville_depart, Res_Final, Cout_final, 1, 2, Res_Final, Cout_final, NewCpt, Path, Cost), !.
 
 /* Lorsqu'on a considéré tous les flips pour le sommet Acc1, on passe au suivant */
 
-heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt) :-
+heuristique_1(Ville_depart, CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt, Path, Cost) :-
 	not(ville(Acc2, _, _)), NewAcc1 is Acc1 + 1,
-	heuristique_1(CH, X, NewAcc1, 1, Res, Cout_actuel, Cpt), !.
+	heuristique_1(Ville_depart, CH, X, NewAcc1, 1, Res, Cout_actuel, Cpt, Path, Cost), !.
 
 /* Cas où on considère un chemin absurde (de la ville A à la ville A) */
 
-heuristique_1(CH, X, Acc1, Acc1, Res, Cout_actuel, Cpt) :- NewAcc is Acc1 + 1, heuristique_1(CH, X, Acc1, NewAcc, Res, Cout_actuel, Cpt), !.
+heuristique_1(Ville_depart, CH, X, Acc1, Acc1, Res, Cout_actuel, Cpt, Path, Cost) :- NewAcc is Acc1 + 1, heuristique_1(Ville_depart, CH, X, Acc1, NewAcc, Res, Cout_actuel, Cpt, Path, Cost), !.
 
 /* Si le flip a amélioré notre solution, on le conserve */
 
-heuristique_1(CH, X, Acc1, Acc2, _, _, _) :- 
+heuristique_1(Ville_depart, CH, X, Acc1, Acc2, _, _, _, Path, Cost) :-
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost < X, NewAcc2 is Acc2 + 1, 
-	heuristique_1(NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost, 0), !.
-	
+	permute_2opt(Follower_1, Acc2, CH, NewPath), calcul_cout_total([Ville_depart | NewPath], NewCost), NewCost < X, NewAcc2 is Acc2 + 1,
+	heuristique_1(Ville_depart, NewPath, NewCost, Acc1, NewAcc2, NewPath, NewCost, 0, Path, Cost), !.
+
 /* Si le flip n'a pas amélioré notre solution, on l'ignore */
 
-heuristique_1(CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt) :- 
+heuristique_1(Ville_depart, CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt, Path, Cost) :-
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
-	permute(Follower_1, Acc2, CH, NewPath), calcul_cout_total(NewPath, NewCost), NewCost >= X, NewAcc2 is Acc2 + 1, 
-	heuristique_1(CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt), !.
-	
+	permute_2opt(Follower_1, Acc2, CH, NewPath), calcul_cout_total([Ville_depart | NewPath], NewCost), NewCost >= X, NewAcc2 is Acc2 + 1,
+	heuristique_1(Ville_depart, CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt, Path, Cost), !.
+
 
 /* Appel de l'heuristique 1
 
 	Ville_depart : numéro de la ville de départ
 	CH : Liste représentant le trajet du voyageur
 	X : Cout du chemin
-	random_permutation permet de mélanger notre solution réalisable. celà rend l'heuristique moins sensible aux minimas locaux. 
+	random_permutation permet de mélanger notre solution réalisable. celà rend l'heuristique moins sensible aux minimas locaux.
 	Cependant la solution sera a chaque fois différente
-	
+
 	Problème des 38 villes de djiboutis (Cout optimal : 6656).
 	Meilleur résultat obtenu (environ 30 essais, on part de la ville 1) :
-	
-	?- a_etoile_1(1).
 
-	Resultat : [27,31,36,34,33,38,37,35,32,30,26,25,23,20,22,24,28,19,18,11,12,9,8,13,15,17,16,7,6,3,5,4,2,1,10,14,21,29]
-	Cout :7032.226891035899
-	true.
+  Resultat : [1,2,4,3,5,6,7,8,9,11,12,16,17,18,19,13,15,20,23,26,25,22,24,28,27,31,36,34,33,38,37,35,32,30,29,21,14,10,1]
+  Cout :6664.1135705646275
+  % 5,805,813 inferences, 0.963 CPU in 0.963 seconds (100% CPU, 6030977 Lips)
+  true.
+
+  ?- time(heur_2opt(1)).
+
+  Resultat : [1,2,4,3,5,6,7,8,9,12,11,17,19,18,16,13,15,20,23,26,25,22,24,28,27,31,36,34,33,38,37,35,32,30,29,21,14,10,1]
+  Cout :6659.906740386758
+  % 6,787,897 inferences, 1.384 CPU in 1.384 seconds (100% CPU, 4904589 Lips)
+
+  Lorsqu'on est proche de la solution, le nombre d'inférences augmente grandement.
+
+
 */
 
-a_etoile_1(Ville_depart) :- init_sol_realisable(Ville_depart, CH, 1), random_permutation(CH, CHbis), calcul_cout_total(CHbis, X), heuristique_1(CHbis, X, Ville_depart, 2, CHbis, X, 0), !.
+heur_2opt(Ville_depart, Path, Cost) :- init_sol_realisable(Ville_depart, CH, 1), calcul_cout_total([Ville_depart |CH], X), heuristique_1(Ville_depart, CH, X, 1, 2, CH, X, 0, Path, Cost), !.
+
+/* ****************** Algorithme A* ***********************
+
+
+
+
+
+*/
