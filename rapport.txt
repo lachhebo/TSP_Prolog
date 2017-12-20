@@ -59,6 +59,10 @@ Sous-sous-partie 3 : Les difficultés rencontrées
 Cette heuristique a approximativement pris une dizaine d'heure à être implémentée. Une large partie de cette durée était dédiée au débuggage.
 Le prédicat init_sol_realisable(+Ville_depart, -Resultat) a posé le premier problème : en effet à la fin de la liste une variable non déclarée (de la forme _GXXXX) se baladait, ce qui nous as poussé à implémenter un prédicat fermer_liste(+Liste) pour pallier au problème.
 
+L'évaluation des différents cas dans lequel on pouvait se retrouver durant l'algorithme fut complexe.
+
+Le plus gros problème lors de l'implémentation de cette heuristique a été sa permutation. En effet la permutation doit inverser la place des deux sommets dans une liste, mais aussi inverser les éléments entre ces deux sommets dans la liste. Il nous a fallu séparer les différentes actions dans des prédicats à part pour ne pas nous perdre.
+
 
 Sous-partie 2 : L'heuristique gloutonne
 
