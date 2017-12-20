@@ -59,8 +59,8 @@ read_tsp_file(NomF) :-
 
 /* Fonction distance */
 
-matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is sqrt((Z^2 - Y^2) + (Z2^2-Y2^2)), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
-matrice2(M,_,_,_,F):- F=M.
+matrice(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is acos(sin(Y)*sin(Y2)+cos(Y)*cos(Y2)*cos(Z-Z2)), matrice([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
+matrice(M,_,_,_,F):- F=M.
 
 /* ****************** Méthode Gloutonne *********************** */
 
@@ -78,7 +78,7 @@ verifier(Tbis,C) :- not(member(Tbis,C)).
 
 /* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
 
-glouton(D):- matrice2([],[],1,2,F), glouton(D,F,[],0).
+glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
 glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
 
 /*Lorsque on a fini de parcourir le graphe */
@@ -106,6 +106,7 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
 	permutation, permute et enlever
 */
+
 enlever( X, [X|Q], Q).
 enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
 
