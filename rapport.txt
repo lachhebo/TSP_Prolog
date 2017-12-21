@@ -49,7 +49,7 @@ Principaux prédicats utilisés par l'heuristique :
   - Le prédicat heuristique_1(+Ville_depart, +Solution_courante, +Cout_actuel, +Acc1, +Acc2, ?Nouvelle_solution, ?Nouveau_Cout, +Cpt_execution, -Solution_finale, -Cout_final) constitue le coeur de l'heuristique,et en retourne le résultat final (chemin et coût).
   - Le prédicat init_sol_realisable(+Ville_depart, -Resultat) permet de créer une solution réalisable aléatoire à notre problème
   - Le prédicat permute_2opt(+Sommet1, +Sommet2, +Liste1, -Nouvelle_liste) permet de réaliser la permutation exigée par l'heuristique (permutation des deux sommets dans la liste + inversion des éléments de la liste entre les 2 sommets considérés).
-  - Le prédicat calcul_cout_total(+Liste, -Resultat) permet de calculer le coût de la solution décrite dans Liste.
+  - Le prédicat calcul_cout_total(+Liste, -Resultat) permet de calculer le coût de la solution réalisable décrite dans Liste.
 
 Pour implémenter cet algorithme, on procède de la manière suivante : on se sert de deux accumulateurs pour "simuler" le comportement de deux boucles for imbriquées, et on évalue toutes les permutations de deux éléments de la liste possible.
 
@@ -72,6 +72,9 @@ On part d'un sommet initial, et à chaque étape, on choisit son voisin le plus 
 La marge d'erreur de l'heuristique gloutonne sur le problème du TSP, poyur les instances que nous avons considérés, est d'environ 20%.
 
 Sous-sous-partie 2 : Nos choix d'implémentation
+
+Pour cette heuristique nous avons choisi de représenter le graphe comme une liste d'arête, chaque arête étant de la forme [Ville_A, Ville_B, Cout_chemin]. A chaque étape on se trouve sur un noeud. On parcourt notre liste à la recherche de l'arête de moindre coût reliant notre noeud à un autre noeud non visité. Quand il n'y a plus de noeuds à visiter, on revient au noeud de départ.
+
 
 Sous-sous-partie 3 : Les difficultés rencontrées
 

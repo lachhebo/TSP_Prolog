@@ -94,7 +94,7 @@ suivant(El,Select,New):- member([El,New,_],Select).
 */
 
 
-matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is acos(sin(Y)*sin(Y2)+cos(Y)*cos(Y2)*cos(Z-Z2)), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
+matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is sqrt((((Y-Y2)^2) + ((Z - Z2)^2))), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
 matrice2(M,_,_,_,F):- F=M.
 
 /*
@@ -150,7 +150,10 @@ h_acm(Liste_voisin, Liste_arete, DejaVu, Res) :- calculer_cout_acm_heur_sommets(
 /* Seconde fonction heuristique : on évalue le coût heuristique d'un noeud grâce à la distance qui le sépare de la ville de départ */
 
 h_distance([], _, []).
-h_distance([A | Liste_voisin], Ville_depart, [[A, Cout] | Res]) :-
-  ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2),
+h_distance([A | Liste_voisin], Ville_depart, DejaVu, Res) :-
+  member(A, DejaVu),
+  h_distance(Liste_voisin, Ville_depart, DejaVu, Res), !.
+h_distance([A | Liste_voisin], Ville_depart, DejaVu, [[A, Cout] | Res]) :-
+  not(member(A, DejaVu)), ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2),
   distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), [A, _, Cout]),
   h_distance(Liste_voisin, Ville_depart, Res), !.
