@@ -113,3 +113,9 @@ comparaison(_):- matrice2([],[],1,2,F), tri_insertion(F,_).
 acm([[Racine,_,_]|Ferme],L):- [Ouvert|Ferme]=[[Depart, Arrive, Cout]|Queue], not(cycle([Depart,Arrive,Cout], L)), acm(Queue, [[Depart,Arrive,Cout]|L]), !.
 acm([[Racine,_,_]|Ferme],L):- [Ouvert|Ferme]=[[Depart, Arrive, Cout]|Queue], cycle([Depart,Arrive,Cout], L), acm(Queue,L), !.
 */
+
+/*
+La distance entre 
+
+
+*/
