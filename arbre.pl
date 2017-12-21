@@ -156,4 +156,4 @@ h_distance([A | Liste_voisin], Ville_depart, DejaVu, Res) :-
 h_distance([A | Liste_voisin], Ville_depart, DejaVu, [[A, Cout] | Res]) :-
   not(member(A, DejaVu)), ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2),
   distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), [A, _, Cout]),
-  h_distance(Liste_voisin, Ville_depart, Res), !.
+  h_distance(Liste_voisin, Ville_depart, DejaVu, Res), !.
