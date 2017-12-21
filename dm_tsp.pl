@@ -110,9 +110,6 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 enlever( X, [X|Q], Q).
 enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
 
-permutation([],[]):- !.
-permutation( L, [X|Q1]) :- enlever( X, L, Q), permutation( Q, Q1).
-
 /* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
 
 permute(_,_,[], []).
@@ -176,4 +173,171 @@ ville(Acc1, Coor_1_acc1, Coor_2_acc1), ville(Follower_1, Coor_1_follower_1, Coor
 	X : Cout du chemin
 */
 
+
 a_etoile_1(Ville_depart) :- init_sol_realisable(Ville_depart, CH, 1), calcul_cout_total(CH, X), heuristique_1(CH, X, Ville_depart, 2, CH, X), !.
+
+
+
+a_etoile_isma(D,R,Res):-matrice([],[],1,2,M), heuristique_isma(M,D,R,Res).
+/*
+a_etoile(D,[D]).
+*/
+
+
+
+acm(_) :- matrice2([],[],1,2,F), tri_insertion(F,T), acm(T,[],R), write(R),!.
+acm([],Select,Select).
+acm([[A,F,D],[F,A,D]|Q],Select,R) :- cycle(A,F,Select), acm(Q,[[A,F,D],[F,A,D]|Select],R),!.
+acm([[A,F,D],[F,A,D]|Q],Select,R) :- acm(Q,Select,R),!.
+
+
+comparaison(_):- matrice2([],[],1,2,F), tri_insertion(F,_).
+
+
+
+cycle(_,_,[]).
+cycle(A,F,Select):- member([A,El,_],Select), cycle([A,El],Select,[],F),!.
+cycle(A,_,Select):- not(member([_,A,_],Select)).
+
+cycle([],_,_,_).
+
+cycle([El|Q], Select, Parcouru,F):-
+                                    member([El,Suivant,_],Select),
+                                    not(member(Suivant,[El|Q])),
+                                    not(member(Suivant,Parcouru)),!,
+                                    NewPile = [Suivant|[El|Q]],
+                                    cycle(NewPile,Select,Parcouru,F),!.
+
+
+cycle([El|Q],_,Parcouru,F):-  intersection([El|Q], Parcouru, [F]),!,
+                              false.
+
+cycle([El|Q],Select,Parcouru,F):-  NewParcouru = [El|Parcouru],
+                                   !,
+                                   intersection([F], NewParcouru, []),
+                                   cycle(Q,Select,NewParcouru,F),!.
+
+
+
+
+:- use_module(library(lists)).
+
+insertion(X,[],[X]) :- !.
+insertion([A,B,X],[[C,D,Y]|L],[[A,B,X],[C,D,Y]|L]):- X=<Y,!.
+insertion([A,B,X],[[C,D,Y]|L],[[C,D,Y]|L1]):- X>Y, insertion([A,B,X],L,L1).
+
+tri_insertion([],[]).
+tri_insertion([X|L],LT) :-  tri_insertion(L,L1), insertion(X,L1,LT).
+
+heuristique_isma(M,D,R,Res):- suivant(M,D,R,Suivant),
+                              not(member(Suivant,R)),
+                              NewR=[Suivant|R],!,
+                              heuristique_isma(M,D,NewR,Res).
+
+heuristique_isma(_,_,R, Res):- Res = R.
+
+suivant(M,D,[Current|Q],Suivant):- findall(El,member([Current,El,_],M),Next),
+                                   g1(M,[Current|Q],0,G_Init),
+                                   g2(M,Current,Next,G_Init,[],G),
+                                   h_acm(Next,M,[Current|Q],H),
+                                   evalu(G,H,[],Evaluation),
+                                   mini_isma(Evaluation,Suivant,D).
+
+
+/*
+h2()
+
+*/
+
+g1(M,[T1,T2|Q],G1,G):- member([T1,T2,D],M),
+                       NewG is D + G1,!,
+                       g1(M,[T2|Q],NewG,G).
+
+g1(_,[_],G,Cout):- Cout = G.
+
+
+g2(_,_,[],_,G, G).
+
+
+g2(M,Current,[T|Q],Init_G, G, Res):- member([Current,T,Dist],M),
+                                     Ajout is Init_G + Dist,
+                                     NewG = [[T,Ajout]|G],!,
+                                     g2(M,Current,Q, Init_G, NewG, Res).
+
+
+
+evalu(_,[],Eval, Eval).
+
+evalu(G,[[Noeud,Cout_H]|Q],Evaluation,Res):- member([Noeud,Cout_G],G),
+                                         Cout_total is Cout_G + Cout_H,
+                                         NewEval = [[Noeud,Cout_total]|Evaluation],!,
+                                         evalu(G,Q,NewEval,Res).
+
+
+
+mini_isma([],D,D).
+mini_isma([[Noeud,Cout]|Q],Suivant,_):- mini_isma(Q,Cout, Noeud,Suivant).
+
+
+mini_isma([[Noeud,Cout]|Q],Cout_current, _, Suivant):- Cout < Cout_current,!,
+                                                       mini_isma(Q,Cout, Noeud, Suivant).
+
+
+mini_isma([[_,Cout]|Q],Cout_current, Noeud_current, Suivant):- Cout >= Cout_current,!,
+                                                               mini_isma(Q,Cout_current, Noeud_current, Suivant).
+
+
+mini_isma([],_,Noeud_current,Noeud_current).
+
+
+
+
+
+
+
+
+
+/************ Code de quentin *********************/
+
+
+
+distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
+
+
+/* Prédicats utilisés pour les fonctions heuristiques, notamment la première (ACM) */
+
+enlever_arete([], _, []).
+enlever_arete([ [A, B, Val] | List1], List2, [[ A, B, Val] | Res]) :- not(member(A, List2)), not(member(B, List2)), enlever_arete(List1, List2, Res), !.
+enlever_arete([ [A, _, _] | List1], List2, Res) :- member(A, List2), enlever_arete(List1, List2, Res), !.
+enlever_arete([ [_, B, _] | List1], List2, Res) :- member(B, List2), enlever_arete(List1, List2, Res), !.
+
+/* Prédicat calculant le poids de toutes les arêtes d'un ACM */
+
+calculer_cout_acm([], 0).
+calculer_cout_acm([ [_, _, Cout_arete] | Acm], Res) :- calculer_cout_acm(Acm, Z) , Res is Z + Cout_arete, !.
+
+/* Prédicat calculant le coût heuristique lié à un sommet */
+
+calculer_cout_acm_heur_sommet(A, Liste_arete, DejaVu, [A, Cout_heur_sommet]) :-
+    enlever_arete(Liste_arete, DejaVu, NewList),
+    tri_insertion(NewList, Sorted_List),
+    acm(Sorted_List, [], MyAcm),
+    calculer_cout_acm(MyAcm, Cout_heur_sommet), !.
+
+/* Prédicat calculant les coûts heuristiques chacun lié à un sommet de la liste Liste_sommets */
+
+calculer_cout_acm_heur_sommets([], _, _, []).
+calculer_cout_acm_heur_sommets([A | Liste_sommets], Liste_arete, DejaVu, [Res_sommet | Res]) :-
+    calculer_cout_acm_heur_sommet(A, Liste_arete, [A | DejaVu], Res_sommet),
+    calculer_cout_acm_heur_sommets(Liste_sommets, Liste_arete, DejaVu, Res), !.
+
+/* Première fonction heuristique : on utilise un arbre couvrant de poids minimal pour calculer un coût heuristique pour chaque sommet voisin */
+
+h_acm(Liste_voisin, Liste_arete, DejaVu, Res) :- calculer_cout_acm_heur_sommets(Liste_voisin, Liste_arete, DejaVu, Res).
+
+/* Seconde fonction heuristique : on évalue le coût heuristique d'un noeud grâce à la distance qui le sépare de la ville de départ */
+/*
+h_distance([], _, []).
+h_distance([A | Liste_voisin], Ville_depart, [B | Res]):- h_distance(Liste_voisin, Ville_depart, Res), distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), B).
+
+*/
