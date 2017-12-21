@@ -2,14 +2,24 @@
 Implémentation d'heuristique de résolution du TSP avec Prolog
 
 
-Comme on peut le voir, c'est surtout la construction de la matrice qui a une complexité absolument monstrueuse, pour construire la matrice associé à 38 noeuds dans notre graphe,il a fallu 41.177 secondes et 41.307 secondes pour obtenir le résultat du glouton et construire la matrice. On peut donc déduire qu'indépendamment de la construction de la matrice, il a falu 0.130 secondes à l'algorithme glouton pour obtenir une solution. Reste à juger de la qualité de l'heuristique gloutonne, d'abord par rapport à une relaxation du problème et ensuite par rapport à l'algorithme a_star.
+On trouve dans le fichier dm_tsp.pl un ensemble d'heuristiques :
+
+ Fonction heuristique 1 : 2-opt :
+
+ On part d'une solution réalisable (facile à trouver car graphe complet), et on effectue des flips successifs afin d'approcher la solution optimale
+ Un flip consiste à considérer deux arêtes (A, B) et (C, D). Si le remplacement de ses arêtes par les arêtes (A, C), (B, D) diminue le cout total, on effectue le remplacement ou flip.
+ Soit v un sommet donné et t un autre sommet
+ On note s(v) le sommet suivant le sommet v dans notre solution courante.
+ si (v, s(v)) est supérieur au cout de (s(v), s(t)) le flip considéré est dit prometteur. On ne considère que les flips prometteurs dans un premier temps
+
+ Généralisation à l'algo de Lin-Kernighan (k-opt) possible, mais compliqué. On ne considère plus deux arêtes mais deux chemins
+
+ Fonction heuristique 2 : gloutonne (greedy) :
+
+ On se place sur le noeud de départ, et on se déplace jusqu'au noeud le plus proche non visité. Lorsqu'il n'y a plus de noeuds on revient au noeud de départ
+ Dans cette heuristique c'est la génération de la matrice qui va prendre le plus de temps
 
 
-?- time(glouton(1)).
-  [18,31,27,38,11,16,6,28,20,34,25,26,10,33,8,2,37,17,5,30,32,21,24,13,15,3,12,4,7,14,36,19,29,9,35,23,22,1] coût total =15.862156085446006
-  % 471,325,822 inferences, 41.307 CPU in 41.309 seconds (100% CPU, 11410193 Lips)
-  true.
+On trouve aussi l'Algorithme A* implementé avec un ACM et un heuristique de distance.  
 
-?- time(matrice([],[],F)).
-  % 471,247,731 inferences, 41.176 CPU in 41.177 seconds (100% CPU, 11444655 Lips)
-  F = [[38, 37, 0.7606720706033152], [38, 36, 2.5894180719712314], [38, 35, 1.5154669590986527], [38, 34, 1.7214806216957887], [38, 33, 0.8539396290416041], [38, 32, 0.6591749180553383], [38, 31|...], [38|...], [...|...]|...].
+Enfin les fichiers .tsp sont des données sur lesquelles peuvent être lancé les algorithmes. 
