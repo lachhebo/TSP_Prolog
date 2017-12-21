@@ -80,7 +80,7 @@ verifier(Tbis,C) :- not(member(Tbis,C)).
 
 /* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
 
-glouton(D):- matrice2([],[],1,2,F), glouton(D,F,[],0).
+glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
 glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
 
 /*Lorsque on a fini de parcourir le graphe */
@@ -111,6 +111,12 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
 
 */
+<<<<<<< HEAD
+=======
+
+enlever( X, [X|Q], Q).
+enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
+>>>>>>> 059c4376de7bccdd0c465904172456a92dc8288f
 
 distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
 
