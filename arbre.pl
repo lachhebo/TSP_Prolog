@@ -150,4 +150,7 @@ h_acm(Liste_voisin, Liste_arete, DejaVu, Res) :- calculer_cout_acm_heur_sommets(
 /* Seconde fonction heuristique : on évalue le coût heuristique d'un noeud grâce à la distance qui le sépare de la ville de départ */
 
 h_distance([], _, []).
-h_distance([A | Liste_voisin], Ville_depart, [B | Res]) : h_distance(Liste_voisin, Ville_depart, Res), distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), B).
+h_distance([A | Liste_voisin], Ville_depart, [[A, Cout] | Res]) :-
+  ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2),
+  distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), [A, _, Cout]),
+  h_distance(Liste_voisin, Ville_depart, Res), !.
