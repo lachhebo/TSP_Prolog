@@ -111,12 +111,10 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
 
 */
-<<<<<<< HEAD
-=======
+
 
 enlever( X, [X|Q], Q).
 enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
->>>>>>> 059c4376de7bccdd0c465904172456a92dc8288f
 
 distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
 
