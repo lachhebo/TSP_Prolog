@@ -64,9 +64,11 @@ L'évaluation des différents cas dans lequel on pouvait se retrouver durant l'a
 Le plus gros problème lors de l'implémentation de cette heuristique a été sa permutation. En effet la permutation doit inverser la place des deux sommets dans une liste, mais aussi inverser les éléments entre ces deux sommets dans la liste. Il nous a fallu séparer les différentes actions dans des prédicats à part pour ne pas nous perdre.
 
 
-Sous-partie 2 : L'heuristique gloutonne
+Sous-partie 2 : L'heuristique gloutonne (voisin le plus proche)
 
 Sous-sous-partie 1 : Principe de l'heuristique
+
+On part d'un sommet initial, et à chaque étape, on choisit son voisin le plus proche non visité et on s'y déplace. Lorsque toutes les villes ont été visitées, on revient au noeud initial.
 
 Sous-sous-partie 2 : Nos choix d'implémentation
 
