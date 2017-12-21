@@ -58,42 +58,6 @@ read_tsp_file(NomF) :-
     retractall(ville(_,_,_)),
     read_info_villes(Str).
 
-/* Fonction distance */
-
-matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is sqrt(((Y-Y2)^2) + ((Z-Z2)^2)), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
-matrice2(M,_,_,_,F):- F=M.
-
-/* ****************** Méthode Gloutonne ***********************
-
-  Code test :
-  glouton(a,[[a,b,4], [c,a,3], [b,c,9], [b,a,4], [a,c,3], [c,b,9]],[],0).
-  glouton(D):- Mat is matrice(M,_,F), glouton(D,Mat,[],0).
-*/
-
-min([[A,F]|Q],E,N):- min(Q,A,F,E,N).
-min([[T,F]|Q],M,_,E,N):- T<M, min(Q,T,F,E,N),!.
-min([[T,_]|Q],M,O,E,N):- T>=M, min(Q,M,O,E,N),!.
-min([],M,O,M,O).
-
-
-verifier(Tbis,C) :- not(member(Tbis,C)).
-
-/* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
-
-glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
-glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
-
-/*Lorsque on a fini de parcourir le graphe */
-glouton(A,[[_,_,_]|_],L,C):- NewL=[A|L],write(NewL), write(" cout total ="), write( C).
-
-distmin(A,[[M,F,D]|Q],C,E,N,L):- M=A,verifier(F,L),distmin(A,Q,[[D,F]|C],E,N,L),!.
-distmin(A,[[_,_,_]|Q],R,E,N,L):- distmin(A,Q,R,E,N,L),!.
-
-/*
-distmin(a,[[M,_,D]],[C], E):- M=a, distmin(a,[],[D|C],E).
-distmin(a,[[M,_,D]],[C], E):- not(M=a), distmin(a,[],[D|C],E).
-*/
-
 distmin(_,[],S,E,N,_):- min(S,E,N).
 
 /* ****************** Heuristiques ***********************
@@ -107,32 +71,69 @@ distmin(_,[],S,E,N,_):- min(S,E,N).
 
 	Généralisation à l'algo de Lin-Kernighan (k-opt) possible, mais compliqué. On ne considère plus deux arêtes mais deux chemins
 
-	Fonction heuristique 2 : Arbre couvrant de poids minimal :
-	On commence par générer un arbre couvrant de poids minimal via l'algorithme de kruskal
+	Fonction heuristique 2 : gloutonne (greedy) :
+  On se place sur le noeud de départ, et on se déplace jusqu'au noeud le plus proche non visité. Lorsqu'il n'y a plus de noeuds on revient au noeud de départ
 
 */
 
+/* ****************** Méthode Gloutonne ***********************
 
-enlever( X, [X|Q], Q).
-enlever( X, [Y|Q], [Y|Q1]) :- enlever( X, Q, Q1).
+  Code test :
+  glouton(a,[[a,b,4], [c,a,3], [b,c,9], [b,a,4], [a,c,3], [c,b,9]],[],0).
+  glouton(D):- Mat is matrice(M,_,F), glouton(D,Mat,[],0).
+*/
+
+/* Fonction de création de la matrice (liste des arêtes), utile pour l'heuristique gloutonne et la fonction heuristique acm */
+
+matrice2(M,C,V1,_,F):- ville(X,Y,Z), ville(X2,Y2,Z2) ,(X2>X), (X>=V1), not(member([X,X2],C)), !, D is sqrt(((Y-Y2)^2) + ((Z-Z2)^2)), matrice2([[X,X2,D],[X2,X,D]|M],[[X,X2],[X2,X]|C],X,X2, F).
+matrice2(M,_,_,_,F):- F=M.
+
+/* Le prédicat min(...) permet de trouver l'arête permettant de rejoindre le noeud le plus proche du noeud courant */
+
+min([[A,F]|Q],E,N):- min(Q,A,F,E,N).
+min([[T,F]|Q],M,_,E,N):- T<M, min(Q,T,F,E,N),!.
+min([[T,_]|Q],M,O,E,N):- T>=M, min(Q,M,O,E,N),!.
+min([],M,O,M,O).
+
+/* verifier(+Tbis, +C) : vérifie l'absence d'un élément dans une liste. Simplifie la lecture des autres prédicats */
+
+verifier(Tbis,C) :- not(member(Tbis,C)).
+
+/* La méthode doit toujours aller dans la ville qu'il n'a pas encore visité la plus proche de lui jusq'à avoir visité toutes les villes. */
+
+glouton(D):- matrice([],[],1,2,F), glouton(D,F,[],0).
+glouton(A,[[M1,M2,M3]|Q],L,C):- distmin(A,[[M1,M2,M3]|Q],[],E,N,L),NewC is E+C, NewL=[A|L], glouton(N,[[M1,M2,M3]|Q],NewL,NewC),!.
+
+/*Lorsque on a fini de parcourir le graphe */
+
+glouton(A,[[_,_,_]|_],L,C):- NewL=[A|L],write(NewL), write(" cout total ="), write( C).
+
+distmin(A,[[M,F,D]|Q],C,E,N,L):- M=A,verifier(F,L),distmin(A,Q,[[D,F]|C],E,N,L),!.
+distmin(A,[[_,_,_]|Q],R,E,N,L):- distmin(A,Q,R,E,N,L),!.
 
 distance(ville(X1,Y1,Z1),ville(X2,Y2,Z2), D) :- M is sqrt((((Y1-Y2)^2) + ((Z1 - Z2)^2))), D = [X1, X2, M].
 
-/* permute 4 : Remplace les occurences de sommet1 par Sommet2 et vice-versa dans la liste 1 et stocke le résultat dans la liste 2*/
+/* ****************** Méthode 2-opt *********************** */
+
+/* permute_2opt_reverse(+Sommet, +List1, -List_Res) : Inverse les positions des éléments jusqu'au sommet Sommet dans la liste List et stocke le résultat dans la liste List_Res */
 
 permute_2opt_reverse(Sommet, [Sommet | CH], CH) :- !.
 permute_2opt_reverse(Sommet, [_ | CH], NewPath) :- permute_2opt_reverse(Sommet, CH, NewPath), !.
 
+/* Le prédicat cut_list(Sommet, Liste, Res) Avance la lecture de la liste Liste jusqu'au sommet Sommet et renvoie le reste de la liste dans Res */
+
 cut_list(_, [], []).
 cut_list(Sommet, [Sommet | CH], CH) :- !.
 cut_list(Sommet, [_ | CH], X) :- cut_list(Sommet, CH, X), !.
+
+/* permute_2opt(+Sommet1, +Sommet2, +List1, -NewPath) : Remplace les occurences de Sommet1 par Sommet2 et vice-versa dans la liste List1 et stocke le résultat dans la liste NewPath */
 
 permute_2opt(_,_,[],[]) :-!.
 permute_2opt(Sommet1, Sommet2, [Sommet2 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet1, NewCH, ReversedList), cut_list(Sommet1, CH, New), append([[Sommet1], ReversedList, [Sommet2], New], NewPath), !.
 permute_2opt(Sommet1, Sommet2, [Sommet1 |CH], NewPath) :- reverse(CH, NewCH), permute_2opt_reverse(Sommet2, NewCH, ReversedList), cut_list(Sommet2, CH, New), append([[Sommet2], ReversedList, [Sommet1], New], NewPath), !.
 permute_2opt(Sommet1, Sommet2, [A |CH], [A | NewPath]) :- permute_2opt(Sommet1, Sommet2, CH, NewPath), !.
 
-/* Code pour fermer une liste. Apres l'initialisation de la solution réalisable, une variable non déclarée traine a la fin*/
+/* Prédicat pour fermer une liste. Apres l'initialisation de la solution réalisable, une variable non déclarée traine a la fin*/
 
 fermer_liste([]).
 fermer_liste([_ | T]) :- fermer_liste(T).
@@ -142,7 +143,7 @@ fermer_liste([_ | T]) :- fermer_liste(T).
 calcul_cout_total([_ | []], 0).
 calcul_cout_total([A | [B | CH]], X) :- ville(A, C, D), ville(B,E,F), distance(ville(A,C,D),ville(B,E,F), [_,_,Y]), calcul_cout_total([B | CH], Z), !, X is Y + Z.
 
-/* On trouve une solution réalisable à notre problème (facile car graphe complet : on passe une seule fois par chaque ville) */
+/* On trouve une solution réalisable pseudo-aléatoire à notre problème (facile car graphe complet : on passe une seule fois par chaque ville) */
 
 init_sol_realisable(_, Acc) :- not(ville(Acc,_,_)).
 init_sol_realisable(CH, Acc) :- ville(Acc, _, _), not(member(Acc, CH)), NewAcc is Acc + 1, init_sol_realisable([Acc | CH], NewAcc).
@@ -151,7 +152,6 @@ init_sol_realisable(CH, Acc) :- ville(Acc, _, _), member(Acc, CH), NewAcc is Acc
 init_sol_realisable(Ville_depart, [Ville_depart | Z], Acc) :- init_sol_realisable([Ville_depart | Y], Acc), fermer_liste(Z), random_permutation(Y, Z).
 
 /* Après avoir obtenu une solution réalisable, on cherche une permutation qui diminuera le cout du voyage (2-opt) */
-
 /* On ne considère pas de flip si on est sur la ville de départ */
 
 heuristique_1(Ville_depart, CH, X, Ville_depart, Acc2, Res, Cout_actuel, Cpt, Path, Cost) :-
@@ -178,7 +178,7 @@ heuristique_1(Ville_depart, CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt, Path, Cost
 	not(ville(Acc2, _, _)), NewAcc1 is Acc1 + 1,
 	heuristique_1(Ville_depart, CH, X, NewAcc1, 1, Res, Cout_actuel, Cpt, Path, Cost), !.
 
-/* Cas où on considère un chemin absurde (de la ville A à la ville A) */
+/* Cas où on considère une arête absurde (de la ville A à la ville A) */
 
 heuristique_1(Ville_depart, CH, X, Acc1, Acc1, Res, Cout_actuel, Cpt, Path, Cost) :- NewAcc is Acc1 + 1, heuristique_1(Ville_depart, CH, X, Acc1, NewAcc, Res, Cout_actuel, Cpt, Path, Cost), !.
 
@@ -195,7 +195,6 @@ heuristique_1(Ville_depart, CH, X, Acc1, Acc2, Res, Cout_actuel, Cpt, Path, Cost
 	Follower_1 is Acc1 + 1, ville(Follower_1, _, _),
 	permute_2opt(Follower_1, Acc2, CH, NewPath), calcul_cout_total([Ville_depart | NewPath], NewCost), NewCost >= X, NewAcc2 is Acc2 + 1,
 	heuristique_1(Ville_depart, CH, X, Acc1, NewAcc2, Res, Cout_actuel, Cpt, Path, Cost), !.
-
 
 /* Appel de l'heuristique 1
 
