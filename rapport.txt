@@ -1,0 +1,98 @@
+Compte-rendu DM Prolog
+
+Introduction :
+
+
+Dans le cadre du cours nous initiant à la programmation dynamique, il nous a été demandé de réaliser des algorithmes permettant d'apporter une solution au Traveling Salesman Problem.
+Le TSP est un problème d'optimisation pour lequel il n'existe pas à l'heure actuelle d'algorithme permettant d'obtenir à coup sûr une solution optimale en un temps raisonnable.
+Aussi au cours de ce rapport nous détaillerons les réponses que nous avons tenté d'apporté à ce problème (avec plus ou moins de succès), nos choix d'implémentations, les difficultés rencontrées, et ce que nous aurions aimé avoir eu le temps d'implémenter si le temps nous l'avait permis.
+
+Partie 1 : Utilisation du fichier .pl fourni
+
+Pour pouvoir utiliser les prédicats décrits dans le fichier .pl, il vous faut lancer Prolog et l'inclure par la commande [nomduprogramme].
+Ensuite il vous faut lire un fichier tsp contenant les données du problème. Vous pouvez pour celà utiliser le prédicat read_tsp_file("nomdufichiertsp.tsp").
+Une fois les données lues, vous pouvez utiliser les prédicats suivant pour lancer les heuristiques correspondantes :
+
+  - glouton(+Ville_depart) pour lancer l'algorithme heuristique glouton
+  - heur_2opt(+Ville_depart, -Solution_finale, -Cout_final) pour lancer l'heuristique 2-opt
+  -
+  -
+
+Partie 1 : Les algorithmes heuristiques
+
+Une heuristique permet d'obtenir une solution réalisable égale ou proche de la solution optimale.
+Afin de répondre aux attentes du sujet nous avons apporté comme réponse deux heuristiques qui nous semblait pertinentes à implémenter en programmation logique : l'heuristique 2-opt et l'heuristique gloutonne.
+
+Sous-partie 1 : L'heuristique 2-opt
+
+Sous-sous-partie 1 : Principe de l'heuristique
+
+Avant de pouvoir utiliser cette heuristique, on a besoin d'avoir déjà une solution réalisable. Dans notre cas déterminer une solution réalisable aléatoire est extrêmement simple : on traverse toutes les villes une fois chacune (sauf la ville d'origine par laquelle on passe 2 fois). Une liste triée des numéros des villes constituent donc une solution réalisable.
+Soit n le nombre de villes.
+
+A partir de cette solution réalisable, on parcourt la liste en utilisant 2 "boucles". L'idée est d'effectuer des permutations entre 2 villes de la liste si cette permutation améliore le résultat de la solution. Plus formellement.
+Soit un sommet v et un sommet t.
+  Si cout((v, suivant(v) + (t, suivant(t)))) > cout((v, t), (suivant(v), suivant(t))), on effectue la permutation.
+  En plus de la permutation, on inverse la liste des sommets situés entre les sommets permutés.
+  On évalue cette permutation pour toutes les paires d'élements possibles de la liste (somme des entiers de 1 à n).
+A la fin on obtient une bonne solution réalisable.
+En général cette heuristique fournit des résultats ayant un pourcentage d'erreur par rapport à la solution optimale entre 4% et 7%.
+
+Sous-sous-partie 2 : Nos choix d'implémentation
+
+Structure des données :
+  - La solution réalisable est stocké sous forme de liste
+  - On utilise 2 accumulateurs pour naviguer dans la solution
+  - On utilise un compteur pour fixer le nombre de fois qu'on applique l'heuristique sur la solution courante
+
+Principaux prédicats utilisés par l'heuristique :
+  - Le prédicat heuristique_1(+Ville_depart, +Solution_courante, +Cout_actuel, +Acc1, +Acc2, ?Nouvelle_solution, ?Nouveau_Cout, +Cpt_execution, -Solution_finale, -Cout_final) constitue le coeur de l'heuristique,et en retourne le résultat final (chemin et coût).
+  - Le prédicat init_sol_realisable(+Ville_depart, -Resultat) permet de créer une solution réalisable aléatoire à notre problème
+  - Le prédicat permute_2opt(+Sommet1, +Sommet2, +Liste1, -Nouvelle_liste) permet de réaliser la permutation exigée par l'heuristique (permutation des deux sommets dans la liste + inversion des éléments de la liste entre les 2 sommets considérés).
+  - Le prédicat calcul_cout_total(+Liste, -Resultat) permet de calculer le coût de la solution décrite dans Liste.
+
+Pour implémenter cet algorithme, on procède de la manière suivante : on se sert de deux accumulateurs pour "simuler" le comportement de deux boucles for imbriquées, et on évalue toutes les permutations de deux éléments de la liste possible.
+
+
+Sous-sous-partie 3 : Les difficultés rencontrées
+
+Cette heuristique a approximativement pris une dizaine d'heure à être implémentée. Une large partie de cette durée était dédiée au débuggage.
+Le prédicat init_sol_realisable(+Ville_depart, -Resultat) a posé le premier problème : en effet à la fin de la liste une variable non déclarée (de la forme _GXXXX) se baladait, ce qui nous as poussé à implémenter un prédicat fermer_liste(+Liste) pour pallier au problème.
+
+L'évaluation des différents cas dans lequel on pouvait se retrouver durant l'algorithme fut complexe.
+Le plus gros problème lors de l'implémentation de cette heuristique a été sa permutation. En effet la permutation doit inverser la place des deux sommets dans une liste, mais aussi inverser les éléments entre ces deux sommets dans la liste. Il nous a fallu séparer les différentes actions dans des prédicats à part pour ne pas nous perdre.
+Outre la permutation la gestion des accumulateurs s'est avérée ardue. En effet il fallait gérer les cas où l'un des accumulateurs était égal à la ville de départ, ou encore lorsqu'il dépassait la valeur max des villes. Ces nombreux cas particuliés ont multiplié le nombre de prédicats.
+
+
+Sous-partie 2 : L'heuristique gloutonne (voisin le plus proche)
+
+Sous-sous-partie 1 : Principe de l'heuristique
+
+On part d'un sommet initial, et à chaque étape, on choisit son voisin le plus proche non visité et on s'y déplace. Lorsque toutes les villes ont été visitées, on revient au noeud initial.
+La marge d'erreur de l'heuristique gloutonne sur le problème du TSP, poyur les instances que nous avons considérés, est d'environ 20%.
+
+Sous-sous-partie 2 : Nos choix d'implémentation
+
+Sous-sous-partie 3 : Les difficultés rencontrées
+
+Partie 2 : L'algorithme A*
+
+Sous-partie 1 : Principe de l'algorithme
+
+L'algorithme prend son point de départ à un noeud racine. A ce noeud est appliqué un coût de 0. Ensuite pour chacun des noeuds voisins l'algorithme utilise une fonction heuristique pour déterminer le coût heuristique associé au noeud afin de savoir quel noeud il est le plus pertinent de prendre.
+Le noeud le plus pertinent est ajouté à notre liste-solution, la liste des noeuds ouverts (voisins) et fermés (déjà visités) est mise à jour. On relance la fonction heuristique pour chaque noeud voisin, et on recommence l'opération jusqu'à ce qu'il n'y ait plus de noeuds voisins.
+
+Dans notre problème le graphe est complet, aussi la liste fermé ne contiendra au début que le noeud racine, et ses voisins seront tous les autres sommets.
+L'algorithme A* permet de trouver une solution optimale pour un problème si la fonction heuristique utilisée est admissible.
+
+Sous-partie 2 : Heuristique utilisée : l'ACM
+
+Sous-sous-partie 1 : Principe de l'heuristique
+
+Sous-sous-partie 2 : Nos choix d'implémentation
+
+Sous-sous-partie 3 : Les difficultés rencontrées
+
+Sous-partie 3 : Nos choix d'implémentation
+
+Sous-partie 4 : Les difficultées rencontrées

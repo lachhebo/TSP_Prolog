@@ -102,7 +102,9 @@ vidage([[A,B,C]|Q],I,R):- member([B,A,C],Q), enlever([B,A,C],Q,FF), vidage(FF,[[
 vidage([],I,R):- R=I.
 */
 
-acm(_) :- matrice2([],[],1,2,F), tri_insertion(F,T), acm(T,[],R), write(R),!.
+/* Prédicat permettant de créer un arbre de poids minimal en fonction d'une liste d'arête représentatn un graphe */
+
+acm(R) :- matrice2([],[],1,2,F), tri_insertion(F,T), acm(T,[],R).
 acm([],Select,Select).
 acm([[A,F,D],[F,A,D]|Q],Select,R) :- cycle(A,F,Select), acm(Q,[[A,F,D],[F,A,D]|Select],R),!.
 acm([[A,F,D],[F,A,D]|Q],Select,R) :- acm(Q,Select,R),!.
@@ -114,8 +116,42 @@ acm([[Racine,_,_]|Ferme],L):- [Ouvert|Ferme]=[[Depart, Arrive, Cout]|Queue], not
 acm([[Racine,_,_]|Ferme],L):- [Ouvert|Ferme]=[[Depart, Arrive, Cout]|Queue], cycle([Depart,Arrive,Cout], L), acm(Queue,L), !.
 */
 
-/*
-La distance entre 
 
+/* Prédicats utilisés pour les fonctions heuristiques, notamment la première (ACM) */
 
-*/
+enlever_arete([], _, []).
+enlever_arete([ [A, B, Val] | List1], List2, [[ A, B, Val] | Res]) :- not(member(A, List2)), not(member(B, List2)), enlever_arete(List1, List2, Res), !.
+enlever_arete([ [A, _, _] | List1], List2, Res) :- member(A, List2), enlever_arete(List1, List2, Res), !.
+enlever_arete([ [_, B, _] | List1], List2, Res) :- member(B, List2), enlever_arete(List1, List2, Res), !.
+
+/* Prédicat calculant le poids de toutes les arêtes d'un ACM */
+
+calculer_cout_acm([], 0).
+calculer_cout_acm([ [_, _, Cout_arete] | Acm], Res) :- calculer_cout_acm(Acm, Z) , Res is Z + Cout_arete, !.
+
+/* Prédicat calculant le coût heuristique lié à un sommet */
+
+calculer_cout_acm_heur_sommet(A, Liste_arete, DejaVu, [A, Cout_heur_sommet]) :-
+    enlever_arete(Liste_arete, DejaVu, NewList),
+    tri_insertion(NewList, Sorted_List),
+    acm(Sorted_List, [], MyAcm),
+    calculer_cout_acm(MyAcm, Cout_heur_sommet), !.
+
+/* Prédicat calculant les coûts heuristiques chacun lié à un sommet de la liste Liste_sommets */
+
+calculer_cout_acm_heur_sommets([], _, _, []).
+calculer_cout_acm_heur_sommets([A | Liste_sommets], Liste_arete, DejaVu, [Res_sommet | Res]) :-
+    calculer_cout_acm_heur_sommet(A, Liste_arete, [A | DejaVu], Res_sommet),
+    calculer_cout_acm_heur_sommets(Liste_sommets, Liste_arete, DejaVu, Res), !.
+
+/* Première fonction heuristique : on utilise un arbre couvrant de poids minimal pour calculer un coût heuristique pour chaque sommet voisin */
+
+h_acm(Liste_voisin, Liste_arete, DejaVu, Res) :- calculer_cout_acm_heur_sommets(Liste_voisin, Liste_arete, DejaVu, Res).
+
+/* Seconde fonction heuristique : on évalue le coût heuristique d'un noeud grâce à la distance qui le sépare de la ville de départ */
+
+h_distance([], _, []).
+h_distance([A | Liste_voisin], Ville_depart, [[A, Cout] | Res]) :-
+  ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2),
+  distance(ville(A, CoorA1, CoorA2), ville(Ville_depart, CoorB1, CoorB2), [A, _, Cout]),
+  h_distance(Liste_voisin, Ville_depart, Res), !.
